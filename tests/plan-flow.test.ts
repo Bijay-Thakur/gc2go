@@ -16,9 +16,14 @@ describe("shared upload and social planning flow", () => {
     expect(result.analysis.placeName).toBe("Longwood Gardens");
   });
 
-  it("requires human confirmation below 0.80 confidence", () => {
-    expect(demoSocialAnalysis.confidence).toBeLessThan(0.8);
-    expect(destinationNeedsConfirmation(demoSocialAnalysis)).toBe(true);
+  it("does not require confirmation for the recorded Longwood Gardens Reel", () => {
+    expect(demoSocialAnalysis.confidence).toBeGreaterThanOrEqual(0.8);
+    expect(demoSocialAnalysis.placeName).toBe("Longwood Gardens");
+    expect(destinationNeedsConfirmation(demoSocialAnalysis)).toBe(false);
+  });
+
+  it("labels recorded social-video analysis as analyzed from social video", () => {
+    expect(getAnalysisSourceLabel(demoSocialAnalysis)).toBe("Analyzed from social video");
   });
 
   it("sends a confirmed social destination into the same plan pipeline", () => {

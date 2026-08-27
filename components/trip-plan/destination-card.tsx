@@ -21,9 +21,10 @@ export function DestinationCard({
   onConfirm,
   onUploadInstead,
 }: DestinationCardProps) {
-  const isLowConfidence = analysis.confidence < 0.8;
+  const isLowConfidence = analysis.confidence < 0.8 || !analysis.placeName;
   const isSocialSource = Boolean(analysis.provider);
   const confidencePercent = Math.round(analysis.confidence * 100);
+  const locationLabel = [analysis.city, analysis.region, analysis.country].filter(Boolean).join(", ");
 
   return (
     <article className="assistant-entry w-full animate-[rise-in_420ms_ease-out]">
@@ -43,10 +44,10 @@ export function DestinationCard({
                 <MapPinned className="size-4" aria-hidden="true" /> Detected destination
               </p>
               <h2 className="text-2xl font-black tracking-[-0.035em] text-[#17233c] sm:text-3xl">
-                {analysis.placeName}
+                {analysis.placeName ?? "Destination needs confirmation"}
               </h2>
               <p className="mt-1 text-sm font-medium text-[#526070]">
-                {analysis.city}, {analysis.region} · {analysis.activityType}
+                {locationLabel || "Location not confirmed"} · {analysis.activityType}
               </p>
             </div>
             <div className="shrink-0 rounded-2xl border border-white/70 bg-white/75 px-3 py-2 text-center shadow-sm backdrop-blur">
@@ -59,13 +60,16 @@ export function DestinationCard({
         <div className="p-5 sm:p-6">
           <div className="mb-5">
             <p className="mb-2 flex items-center gap-2 text-sm font-black text-[#17233c]">
-              <ScanSearch className="size-4 text-[#f97362]" aria-hidden="true" /> What the reel showed
+              <ScanSearch className="size-4 text-[#f97362]" aria-hidden="true" /> What the video showed
             </p>
             <ul className="space-y-1.5 text-sm leading-6 text-[#626a78]">
-              {analysis.evidence.map((item) => (
-                <li key={item} className="flex gap-2">
+              {analysis.evidence.map((item, index) => (
+                <li key={`${item.timestamp ?? "evidence"}-${index}`} className="flex gap-2">
                   <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#f97362]" />
-                  {item}
+                  <span>
+                    {item.timestamp ? <strong className="mr-1 text-[#0f766e]">{item.timestamp}</strong> : null}
+                    {item.observation}
+                  </span>
                 </li>
               ))}
             </ul>

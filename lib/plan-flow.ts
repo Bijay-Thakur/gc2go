@@ -4,7 +4,7 @@ import type { TripPlan, VideoAnalysis } from "@/types";
 export const DESTINATION_CONFIDENCE_THRESHOLD = 0.8;
 
 export function destinationNeedsConfirmation(analysis: VideoAnalysis): boolean {
-  return analysis.confidence < DESTINATION_CONFIDENCE_THRESHOLD;
+  return analysis.confidence < DESTINATION_CONFIDENCE_THRESHOLD || !analysis.placeName;
 }
 
 export function confirmAnalysisDestination(
@@ -29,7 +29,9 @@ export function confirmAnalysisDestination(
 
 export function getAnalysisSourceLabel(analysis: VideoAnalysis, confirmedBy = "Bijay"): string {
   if (analysis.sourceMode === "user-confirmed") return `Destination confirmed by ${confirmedBy}`;
-  if (analysis.sourceMode === "uploaded-video" || analysis.contentAccess === "full-video") {
+  if (analysis.sourceMode === "youtube-video") return "Analyzed from YouTube video";
+  if (analysis.sourceMode === "social-video") return "Analyzed from social video";
+  if (analysis.sourceMode === "uploaded-video") {
     return "Analyzed from uploaded video";
   }
   if (analysis.provider || analysis.sourceMode === "social-metadata" || analysis.sourceMode === "thumbnail") {
