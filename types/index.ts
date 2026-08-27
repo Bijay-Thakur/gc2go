@@ -33,6 +33,8 @@ export interface PreviousPlan {
   status: "confirmed" | "saved";
   dateLabel: string;
   attendanceLabel: string;
+  votes?: VotesByMember;
+  messages: ChatMessage[];
   analysis: VideoAnalysisContract;
   plan: TripPlanContract;
 }

@@ -18,7 +18,7 @@ import { previousPlans } from "@/data/previous-plans";
 import { analysisSteps, initialMessages } from "@/lib/demo-data";
 import { enterPlanningPipeline, getAnalysisSourceLabel } from "@/lib/plan-flow";
 import { socialPreviewSchema, videoAnalysisSchema } from "@/lib/schemas";
-import type { PreviousPlan, SocialPreview, TripPlan, VoteChoice, VotesByMember } from "@/types";
+import type { ChatMessage, PreviousPlan, SocialPreview, TripPlan, VoteChoice, VotesByMember } from "@/types";
 
 type FlowStage = "idle" | "analyzing" | "destination" | "planning" | "planned" | "social-loading" | "social-preview" | "social-analyzing";
 
@@ -66,6 +66,7 @@ function AnalysisProgress({ activeStep }: { activeStep: number }) {
 
 export default function HomePage() {
   const [members, setMembers] = useState(initialMembers);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialMessages);
   const [flowStage, setFlowStage] = useState<FlowStage>("idle");
   const [analysisStep, setAnalysisStep] = useState(0);
   const [confirmedPlace, setConfirmedPlace] = useState(demoVideoAnalysis.placeName);
@@ -129,6 +130,7 @@ export default function HomePage() {
     setActivePlanId(null);
     setConfirmedPlace(demoVideoAnalysis.placeName);
     setVotes({});
+    setChatMessages(initialMessages);
     setAnalysisStep(0);
     setFlowStage("analyzing");
 
@@ -173,7 +175,8 @@ export default function HomePage() {
     setAnalysis(plan.analysis);
     setConfirmedPlace(plan.analysis.placeName);
     setTripPlan(plan.plan);
-    setVotes({});
+    setVotes(plan.votes ?? {});
+    setChatMessages(plan.messages);
     setFlowStage("planned");
   }
 
@@ -188,6 +191,7 @@ export default function HomePage() {
     setConfirmedPlace(demoVideoAnalysis.placeName);
     setTripPlan(demoTripPlan);
     setVotes({});
+    setChatMessages(initialMessages);
     setFlowStage("idle");
   }
 
@@ -200,6 +204,7 @@ export default function HomePage() {
     setSocialError(null);
     setTripPlan(demoTripPlan);
     setVotes({});
+    setChatMessages(initialMessages);
     setFlowStage("social-loading");
 
     try {
@@ -285,7 +290,7 @@ export default function HomePage() {
         <div className="flex min-w-0 flex-1 flex-col bg-[#080B12]">
           <GroupHeader members={members} onProfilesClick={() => setProfilesOpen(true)} />
 
-        <ChatFeed members={members} messages={initialMessages} currentMemberId="maya">
+        <ChatFeed members={members} messages={chatMessages} currentMemberId="maya">
           {uploadedFile ? (
             <article className="ml-auto flex w-full max-w-[92%] justify-end sm:max-w-[72%]">
               <div>

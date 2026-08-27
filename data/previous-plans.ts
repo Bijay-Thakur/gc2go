@@ -1,14 +1,20 @@
 import { demoTripPlan, demoVideoAnalysis } from "@/data/demo-trip";
 import { tripPlanSchema, videoAnalysisSchema } from "@/lib/schemas";
-import type { PreviousPlan } from "@/types";
+import type { ChatMessage, PreviousPlan } from "@/types";
 
-export const previousPlans: PreviousPlan[] = [
+const basePreviousPlans: PreviousPlan[] = [
   {
     id: "storm-king",
     title: "Storm King Art Center",
     status: "confirmed",
     dateLabel: "Saturday",
     attendanceLabel: "3 of 4 attending",
+    votes: { maya: "yes", theo: "yes", jordan: "maybe", priya: "yes" },
+    messages: [
+      { id: "storm-message-1", memberId: "maya", text: "Storm King is looking perfect for Saturday.", time: "10:12 AM" },
+      { id: "storm-message-2", memberId: "jordan", text: "I’m a maybe, but the sculpture loop sounds great.", time: "10:18 AM" },
+      { id: "storm-message-3", memberId: "priya", text: "I’m in. Can we stop for coffee in Beacon afterward?", time: "10:24 AM" },
+    ],
     analysis: videoAnalysisSchema.parse({
       ...demoVideoAnalysis,
       placeName: "Storm King Art Center",
@@ -49,6 +55,10 @@ export const previousPlans: PreviousPlan[] = [
     status: "saved",
     dateLabel: "Date undecided",
     attendanceLabel: "2 interested",
+    messages: [
+      { id: "dumbo-message-1", memberId: "theo", text: "Saving this food crawl for when we pick a date.", time: "Yesterday" },
+      { id: "dumbo-message-2", memberId: "maya", text: "The waterfront walk makes this a strong backup plan.", time: "Yesterday" },
+    ],
     analysis: videoAnalysisSchema.parse({
       ...demoVideoAnalysis,
       placeName: "DUMBO Food Crawl",
@@ -88,3 +98,41 @@ export const previousPlans: PreviousPlan[] = [
     }),
   },
 ];
+
+const allMembersConfirmedPlan: PreviousPlan = {
+  ...basePreviousPlans[0],
+  id: "longwood-gardens",
+  title: "Longwood Gardens",
+  dateLabel: "Sunday",
+  attendanceLabel: "4 of 4 attending",
+  votes: { maya: "yes", theo: "yes", jordan: "yes", priya: "yes" },
+  messages: [
+    { id: "longwood-message-1", memberId: "maya", text: "Everyone said yes to Longwood Gardens!", time: "Sunday" },
+    { id: "longwood-message-2", memberId: "theo", text: "The conservatory and fountain show are must-sees.", time: "Sunday" },
+    { id: "longwood-message-3", memberId: "priya", text: "I’ll bring snacks for the drive.", time: "Sunday" },
+  ],
+  analysis: videoAnalysisSchema.parse({
+    ...basePreviousPlans[0].analysis,
+    placeName: "Longwood Gardens",
+    city: "Kennett Square",
+    region: "Pennsylvania",
+    activityType: "garden and conservatory visit",
+    visibleActivities: ["garden walk", "conservatory visit", "fountain show"],
+    evidence: ["Formal gardens, conservatories, and fountains match Longwood Gardens."],
+    confidence: 0.95,
+  }),
+  plan: tripPlanSchema.parse({
+    ...basePreviousPlans[0].plan,
+    proposedDay: "Sunday",
+    startTime: "10:00",
+    endTime: "17:00",
+    driver: "Maya",
+    transportationRecommendation: "Maya drives; everyone meets at the group pickup point.",
+    estimatedPerPersonMinimum: 38,
+    estimatedPerPersonMaximum: 55,
+  }),
+};
+
+export const previousPlans: PreviousPlan[] = [...basePreviousPlans, allMembersConfirmedPlan];
+export const confirmedPlans = previousPlans.filter((plan) => plan.status === "confirmed");
+export const savedPlans = previousPlans.filter((plan) => plan.status === "saved");
