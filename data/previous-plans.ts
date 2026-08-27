@@ -9,6 +9,7 @@ export const previousPlans: PreviousPlan[] = [
     status: "confirmed",
     dateLabel: "Saturday",
     attendanceLabel: "3 of 4 attending",
+    votes: { maya: "yes", theo: "yes", jordan: "maybe", priya: "yes" },
     analysis: videoAnalysisSchema.parse({
       ...demoVideoAnalysis,
       placeName: "Storm King Art Center",
@@ -49,6 +50,7 @@ export const previousPlans: PreviousPlan[] = [
     status: "saved",
     dateLabel: "Date undecided",
     attendanceLabel: "2 interested",
+    votes: { maya: "yes", theo: "yes" },
     analysis: videoAnalysisSchema.parse({
       ...demoVideoAnalysis,
       placeName: "DUMBO Food Crawl",
@@ -84,6 +86,47 @@ export const previousPlans: PreviousPlan[] = [
       reviewTips: [
         { tip: "Go before the late-afternoon bridge crowds.", sourceLabel: "Brooklyn Bridge Park", sourceUrl: "https://www.brooklynbridgepark.org/" },
         { tip: "Share portions to keep the crawl within budget.", sourceLabel: "DUMBO directory", sourceUrl: "https://dumbo.is/" },
+      ],
+    }),
+  },
+  {
+    id: "central-park-day",
+    title: "Central Park Day",
+    status: "confirmed",
+    dateLabel: "Sunday",
+    attendanceLabel: "4 of 4 attending",
+    votes: { maya: "yes", theo: "yes", jordan: "maybe", priya: "yes" },
+    analysis: videoAnalysisSchema.parse({
+      ...demoVideoAnalysis,
+      placeName: "Central Park",
+      city: "New York",
+      region: "New York",
+      activityType: "park visit and picnic",
+      visibleActivities: ["park walk", "rowboat rental", "picnic"],
+      evidence: ["The Bow Bridge, boathouse, and Manhattan skyline backdrop match Central Park."],
+      confidence: 0.96,
+    }),
+    plan: tripPlanSchema.parse({
+      ...demoTripPlan,
+      proposedDay: "Sunday",
+      startTime: "10:00",
+      endTime: "17:00",
+      driver: null,
+      transportationRecommendation: "Take the subway to 72nd Street; no car needed.",
+      estimatedPerPersonMinimum: 20,
+      estimatedPerPersonMaximum: 40,
+      itinerary: [
+        { time: "10:00 AM", title: "Meet at the park", description: "Gather near the 72nd Street entrance and walk toward the lake." },
+        { time: "12:00 PM", title: "Rowboat & picnic", description: "Rent a rowboat on the lake, then picnic near Bethesda Terrace." },
+        { time: "3:00 PM", title: "Bow Bridge stroll", description: "Wander north past Bow Bridge before heading out." },
+      ],
+      nearbyPlaces: [
+        { name: "Bethesda Terrace", type: "attraction", note: "Iconic photo stop right by the lake." },
+        { name: "Loeb Boathouse", type: "food", note: "Casual lakeside food and drinks." },
+      ],
+      reviewTips: [
+        { tip: "Arrive early on weekends before the park gets crowded.", sourceLabel: "Central Park Conservancy", sourceUrl: "https://www.centralparknyc.org/" },
+        { tip: "Reserve a rowboat online to skip the line.", sourceLabel: "Loeb Boathouse", sourceUrl: "https://www.thecentralparkboathouse.com/" },
       ],
     }),
   },

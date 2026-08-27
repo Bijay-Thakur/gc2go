@@ -245,7 +245,7 @@ export default function HomePage() {
     setAnalysis(plan.analysis);
     setConfirmedPlace(plan.analysis.placeName ?? "");
     setTripPlan(plan.plan);
-    setVotes({});
+    setVotes(plan.votes ?? {});
     setFlowStage("planned");
   }
 

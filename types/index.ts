@@ -38,6 +38,7 @@ export interface PreviousPlan {
   status: "confirmed" | "saved";
   dateLabel: string;
   attendanceLabel: string;
+  votes?: VotesByMember;
   analysis: VideoAnalysisContract;
   plan: TripPlanContract;
 }

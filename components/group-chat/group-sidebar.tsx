@@ -11,9 +11,9 @@ interface GroupSidebarProps {
 
 export function GroupSidebar({ activePlanId, plans, onNewPlan, onPlanSelect }: GroupSidebarProps) {
   const planSections = [
-    { title: "Confirmed", plans: plans.filter((plan) => plan.status === "confirmed" && plan.id !== "longwood-gardens") },
+    { title: "Confirmed", plans: plans.filter((plan) => plan.status === "confirmed" && plan.id !== "longwood-gardens" && plan.id !== "central-park-day") },
     { title: "Saved", plans: plans.filter((plan) => plan.status === "saved") },
-    { title: "Previous", plans: plans.filter((plan) => plan.id === "longwood-gardens") },
+    { title: "Previous", plans: plans.filter((plan) => plan.id === "longwood-gardens" || plan.id === "central-park-day") },
   ];
 
   function renderPlan(plan: PreviousPlan, sectionTitle: string) {
