@@ -13,7 +13,7 @@ import { DestinationCard } from "@/components/trip-plan/destination-card";
 import { TripPlanCard } from "@/components/trip-plan/trip-plan-card";
 import { VotingPanel } from "@/components/trip-plan/voting-panel";
 import { demoTripPlan, demoVideoAnalysis } from "@/data/demo-trip";
-import { members } from "@/data/members";
+import { members as initialMembers } from "@/data/members";
 import { previousPlans } from "@/data/previous-plans";
 import { analysisSteps, initialMessages } from "@/lib/demo-data";
 import { enterPlanningPipeline, getAnalysisSourceLabel } from "@/lib/plan-flow";
@@ -65,6 +65,7 @@ function AnalysisProgress({ activeStep }: { activeStep: number }) {
 }
 
 export default function HomePage() {
+  const [members, setMembers] = useState(initialMembers);
   const [flowStage, setFlowStage] = useState<FlowStage>("idle");
   const [analysisStep, setAnalysisStep] = useState(0);
   const [confirmedPlace, setConfirmedPlace] = useState(demoVideoAnalysis.placeName);
@@ -399,7 +400,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <MemberProfiles members={members} open={profilesOpen} onClose={() => setProfilesOpen(false)} />
+      <MemberProfiles
+        members={members}
+        open={profilesOpen}
+        onClose={() => setProfilesOpen(false)}
+        onMembersChange={setMembers}
+      />
     </main>
   );
 }
