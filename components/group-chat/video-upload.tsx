@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
-import { Film, UploadCloud } from "lucide-react";
+import { useId, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { Film, Paperclip, UploadCloud } from "lucide-react";
 
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
 const ACCEPTED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
@@ -9,11 +9,13 @@ const ACCEPTED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktim
 interface VideoUploadProps {
   disabled?: boolean;
   compact?: boolean;
+  variant?: "panel" | "attachment";
   onFileSelected: (file: File) => void;
 }
 
-export function VideoUpload({ disabled = false, compact = false, onFileSelected }: VideoUploadProps) {
+export function VideoUpload({ disabled = false, compact = false, variant = "panel", onFileSelected }: VideoUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const errorId = useId();
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -45,17 +47,43 @@ export function VideoUpload({ disabled = false, compact = false, onFileSelected 
     if (!disabled) validateAndSelect(event.dataTransfer.files?.[0]);
   }
 
+  const fileInput = (
+    <input
+      ref={inputRef}
+      type="file"
+      className="sr-only"
+      accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+      onChange={handleChange}
+      disabled={disabled}
+      aria-describedby={error ? errorId : undefined}
+    />
+  );
+
+  if (variant === "attachment") {
+    return (
+      <div className="relative shrink-0">
+        {fileInput}
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => inputRef.current?.click()}
+          aria-label="Attach an MP4, WebM, or QuickTime video"
+          className="grid size-11 place-items-center rounded-xl text-[#94A3B8] transition hover:bg-[#1F2937] hover:text-[#F8FAFC] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2DD4BF]"
+        >
+          <Paperclip className="size-5" aria-hidden="true" />
+        </button>
+        {error ? (
+          <p id={errorId} role="alert" className="absolute bottom-full left-0 mb-3 w-64 rounded-lg border border-[#FB7185]/30 bg-[#111827] p-2 text-xs font-semibold text-[#FDA4AF] shadow-xl">
+            {error}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div className={compact ? "w-full" : "border-t border-[#17233c]/8 bg-[#fffdf8] p-3 md:p-4"}>
-      <input
-        ref={inputRef}
-        type="file"
-        className="sr-only"
-        accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
-        onChange={handleChange}
-        disabled={disabled}
-        aria-describedby={error ? "video-upload-error" : undefined}
-      />
+      {fileInput}
       <div
         onDragEnter={() => !disabled && setIsDragging(true)}
         onDragLeave={() => setIsDragging(false)}
@@ -87,11 +115,10 @@ export function VideoUpload({ disabled = false, compact = false, onFileSelected 
         </button>
       </div>
       {error ? (
-        <p id="video-upload-error" role="alert" className="mx-auto mt-2 max-w-3xl px-2 text-xs font-semibold text-[#c54b3c]">
+        <p id={errorId} role="alert" className="mx-auto mt-2 max-w-3xl px-2 text-xs font-semibold text-[#c54b3c]">
           {error}
         </p>
       ) : null}
     </div>
   );
 }
-

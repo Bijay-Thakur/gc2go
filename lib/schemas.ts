@@ -32,6 +32,8 @@ export const groupMemberSchema = z.object({
   requiresChildFriendly: z.boolean(),
 });
 
+export const socialProviderSchema = z.enum(["tiktok", "instagram"]);
+
 export const videoAnalysisSchema = z.object({
   placeName: z.string().min(1),
   city: z.string().min(1),
@@ -42,6 +44,29 @@ export const videoAnalysisSchema = z.object({
   likelyRequiresCar: z.boolean(),
   evidence: z.array(z.string()).min(1),
   confidence: z.number().min(0).max(1),
+  sourceMode: z.enum(["uploaded-video", "social-metadata", "thumbnail", "user-confirmed"]).optional(),
+  sourceUrl: z.url().optional(),
+  provider: socialProviderSchema.optional(),
+  contentAccess: z.enum(["full-video", "metadata-only", "thumbnail-only"]).optional(),
+  confidenceReason: z.string().min(1).optional(),
+});
+
+export const socialLinkInputSchema = z.object({
+  url: z.url(),
+  provider: socialProviderSchema,
+}).strict();
+
+export const socialPreviewSchema = z.object({
+  provider: socialProviderSchema,
+  canonicalUrl: z.url(),
+  embedUrl: z.url().nullable(),
+  status: z.enum(["available", "blocked", "unavailable"]),
+  title: z.string().max(500).optional(),
+  authorName: z.string().max(200).optional(),
+  authorUrl: z.url().optional(),
+  thumbnailUrl: z.url().optional(),
+  error: z.string().max(500).optional(),
+  demoFallback: z.boolean().optional(),
 });
 
 export const nearbyPlaceSchema = z.object({
@@ -96,9 +121,11 @@ export const tripPlanSchema = z.object({
 export type AvailabilitySlot = z.infer<typeof availabilitySlotSchema>;
 export type GroupMember = z.infer<typeof groupMemberSchema>;
 export type VideoAnalysis = z.infer<typeof videoAnalysisSchema>;
+export type SocialProvider = z.infer<typeof socialProviderSchema>;
+export type SocialLinkInput = z.infer<typeof socialLinkInputSchema>;
+export type SocialPreview = z.infer<typeof socialPreviewSchema>;
 export type NearbyPlace = z.infer<typeof nearbyPlaceSchema>;
 export type ReviewTip = z.infer<typeof reviewTipSchema>;
 export type ItineraryItem = z.infer<typeof itineraryItemSchema>;
 export type PlaceEnrichment = z.infer<typeof placeEnrichmentSchema>;
 export type TripPlan = z.infer<typeof tripPlanSchema>;
-

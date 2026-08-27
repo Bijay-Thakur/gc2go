@@ -15,6 +15,9 @@ export const demoVideoAnalysis = videoAnalysisSchema.parse({
     "The glass conservatory and formal garden layout are visible in the reel.",
   ],
   confidence: 0.76,
+  sourceMode: "uploaded-video",
+  contentAccess: "full-video",
+  confidenceReason: "The fountain and conservatory are strong visual clues, but no sign is fully readable.",
 });
 
 export const demoPlaceEnrichment = placeEnrichmentSchema.parse({

@@ -17,6 +17,7 @@ import type { TripPlan } from "@/types";
 interface TripPlanCardProps {
   destination: string;
   plan: TripPlan;
+  sourceLabel?: string;
 }
 
 const statusContent = {
@@ -31,7 +32,7 @@ function formatTime(value: string) {
   return `${hours % 12 || 12}:${String(minutes).padStart(2, "0")} ${suffix}`;
 }
 
-export function TripPlanCard({ destination, plan }: TripPlanCardProps) {
+export function TripPlanCard({ destination, plan, sourceLabel }: TripPlanCardProps) {
   const status = statusContent[plan.feasibilityStatus];
 
   return (
@@ -40,7 +41,8 @@ export function TripPlanCard({ destination, plan }: TripPlanCardProps) {
         <span className="grid size-7 place-items-center rounded-lg bg-[#dff3ed]">
           <Sparkles className="size-3.5" aria-hidden="true" />
         </span>
-        One plan that works for everyone
+        <span>One plan that works for everyone</span>
+        {sourceLabel ? <span className="font-semibold text-[#94A3B8]">· {sourceLabel}</span> : null}
       </div>
 
       <div className="overflow-hidden rounded-[26px] border border-[#17233c]/8 bg-white shadow-[0_20px_65px_rgba(24,35,60,0.1)]">

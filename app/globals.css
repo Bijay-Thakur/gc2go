@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: light;
-  --background: #f6f1e7;
-  --foreground: #17233c;
+  color-scheme: dark;
+  --background: #080b12;
+  --foreground: #f8fafc;
 }
 
 * {
@@ -34,12 +34,12 @@ button:not(:disabled) {
 }
 
 ::selection {
-  background: #b9e8dc;
-  color: #17233c;
+  background: #2dd4bf;
+  color: #080b12;
 }
 
 .chat-scroll {
-  scrollbar-color: rgba(23, 35, 60, 0.18) transparent;
+  scrollbar-color: #334155 transparent;
   scrollbar-width: thin;
 }
 
@@ -49,12 +49,78 @@ button:not(:disabled) {
 
 .chat-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(23, 35, 60, 0.15);
+  background: #334155;
 }
 
 .destination-pattern {
-  background-image: radial-gradient(circle at 1px 1px, rgba(15, 118, 110, 0.16) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(45, 212, 191, 0.16) 1px, transparent 0);
   background-size: 18px 18px;
+}
+
+/* Phase 1 components keep their structure; these scoped mappings apply the dark design system. */
+.gc2go-dark .bg-white,
+.gc2go-dark [class*="bg-white/"] {
+  background-color: #111827 !important;
+}
+
+.gc2go-dark [class*="bg-[#fffdf8]"],
+.gc2go-dark [class*="bg-[#fbfaf6]"],
+.gc2go-dark [class*="bg-[#fafaf7]"],
+.gc2go-dark [class*="bg-[#f7f6f1]"],
+.gc2go-dark [class*="bg-[#f1f3ee]"] {
+  background-color: #0f172a !important;
+}
+
+.gc2go-dark [class*="bg-[#dff3ed]"],
+.gc2go-dark [class*="bg-[#edf3f0]"],
+.gc2go-dark [class*="bg-[#eef7f3]"],
+.gc2go-dark [class*="bg-[#f1f8f5]"],
+.gc2go-dark [class*="bg-[#e9f6f2]"] {
+  background-color: rgba(45, 212, 191, 0.1) !important;
+}
+
+.gc2go-dark [class*="bg-[#fff7e6]"],
+.gc2go-dark [class*="bg-[#fff4d8]"] {
+  background-color: rgba(251, 191, 36, 0.1) !important;
+}
+
+.gc2go-dark [class*="bg-[#fff0ed]"] {
+  background-color: rgba(251, 113, 133, 0.1) !important;
+}
+
+.gc2go-dark [class*="text-[#17233c]"] {
+  color: #f8fafc !important;
+}
+
+.gc2go-dark [class*="text-[#313b4e]"],
+.gc2go-dark [class*="text-[#526070]"],
+.gc2go-dark [class*="text-[#606a78]"],
+.gc2go-dark [class*="text-[#626a78]"],
+.gc2go-dark [class*="text-[#69717f]"],
+.gc2go-dark [class*="text-[#6d7481]"],
+.gc2go-dark [class*="text-[#707784]"],
+.gc2go-dark [class*="text-[#737986]"],
+.gc2go-dark [class*="text-[#747b88]"],
+.gc2go-dark [class*="text-[#757c89]"],
+.gc2go-dark [class*="text-[#777e8b]"],
+.gc2go-dark [class*="text-[#7a818d]"] {
+  color: #94a3b8 !important;
+}
+
+.gc2go-dark [class*="text-[#0f766e]"],
+.gc2go-dark [class*="text-[#0a655e]"] {
+  color: #2dd4bf !important;
+}
+
+.gc2go-dark [class*="text-[#f97362]"],
+.gc2go-dark [class*="text-[#ae4438]"],
+.gc2go-dark [class*="text-[#c54b3c]"] {
+  color: #fb7185 !important;
+}
+
+.gc2go-dark [class*="border-[#17233c]"],
+.gc2go-dark [class*="border-white/"] {
+  border-color: #1f2937 !important;
 }
 
 .plan-pattern {

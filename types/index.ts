@@ -1,3 +1,8 @@
+import type {
+  TripPlan as TripPlanContract,
+  VideoAnalysis as VideoAnalysisContract,
+} from "@/lib/schemas";
+
 export type {
   AvailabilitySlot,
   GroupMember,
@@ -5,6 +10,9 @@ export type {
   NearbyPlace,
   PlaceEnrichment,
   ReviewTip,
+  SocialLinkInput,
+  SocialPreview,
+  SocialProvider,
   TripPlan,
   VideoAnalysis,
 } from "@/lib/schemas";
@@ -17,4 +25,14 @@ export interface ChatMessage {
   memberId: string;
   text: string;
   time: string;
+}
+
+export interface PreviousPlan {
+  id: string;
+  title: string;
+  status: "confirmed" | "saved";
+  dateLabel: string;
+  attendanceLabel: string;
+  analysis: VideoAnalysisContract;
+  plan: TripPlanContract;
 }

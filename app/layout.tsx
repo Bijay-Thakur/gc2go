@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fffaf1",
+  themeColor: "#080B12",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -19,4 +19,3 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     </html>
   );
 }
-
