@@ -44,8 +44,8 @@ export function GroupHeader({ members, onProfilesClick }: GroupHeaderProps) {
           className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#334155] bg-[#111827] px-3 text-sm font-bold text-[#F8FAFC] transition hover:border-[#2DD4BF]/40 hover:bg-[#1F2937] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2DD4BF]"
         >
           <Users className="size-4 text-[#2DD4BF]" aria-hidden="true" />
-          <span className="hidden sm:inline">Group details</span>
-          <span className="sm:hidden">Details</span>
+          <span className="hidden sm:inline">Profiles & availability</span>
+          <span className="sm:hidden">Profiles</span>
         </button>
       </div>
     </header>

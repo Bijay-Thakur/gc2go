@@ -19,7 +19,14 @@ import { previousPlans } from "@/data/previous-plans";
 import { analysisSteps, initialMessages } from "@/lib/demo-data";
 import { confirmAnalysisDestination, enterPlanningPipeline, getAnalysisSourceLabel } from "@/lib/plan-flow";
 import { groundedPlaceSchema, tripPlanSchema, videoAnalysisSchema } from "@/lib/schemas";
-import type { PreviousPlan, TripPlan, VoteChoice, VotesByMember } from "@/types";
+import type {
+  AvailabilitySlot,
+  ChatMessage,
+  PreviousPlan,
+  TripPlan,
+  VoteChoice,
+  VotesByMember,
+} from "@/types";
 
 type FlowStage = "idle" | "analyzing" | "destination" | "planning" | "planned" | "social-analyzing";
 
@@ -77,6 +84,7 @@ export default function HomePage() {
   const [socialError, setSocialError] = useState<string | null>(null);
   const [votes, setVotes] = useState<VotesByMember>({});
   const [votesHydrated, setVotesHydrated] = useState(false);
+  const [crewMembers, setCrewMembers] = useState(members);
   const [profilesOpen, setProfilesOpen] = useState(false);
   const runIdRef = useRef(0);
   const feedEndRef = useRef<HTMLDivElement>(null);
@@ -222,6 +230,12 @@ export default function HomePage() {
     setVotes((currentVotes) => ({ ...currentVotes, [memberId]: vote }));
   }
 
+  function handleAvailabilityChange(memberId: string, availability: AvailabilitySlot[]) {
+    setCrewMembers((current) => current.map((member) => (
+      member.id === memberId ? { ...member, availability } : member
+    )));
+  }
+
   function handlePreviousPlan(plan: PreviousPlan) {
     runIdRef.current += 1;
     setUploadedFile(null);
@@ -332,6 +346,33 @@ export default function HomePage() {
 
   const isBusy = flowStage === "analyzing" || flowStage === "planning" || flowStage === "social-analyzing";
   const sourceLabel = getAnalysisSourceLabel(analysis);
+  const activePreviousPlan = activePlanId
+    ? previousPlans.find((plan) => plan.id === activePlanId)
+    : null;
+  const visibleMessages: ChatMessage[] = activePreviousPlan
+    ? [
+        {
+          id: `${activePreviousPlan.id}-message-1`,
+          memberId: "maya",
+          text: `Pulling up our ${activePreviousPlan.title} plan—this is the one we saved.`,
+          time: "9:41 AM",
+        },
+        {
+          id: `${activePreviousPlan.id}-message-2`,
+          memberId: "theo",
+          text: `Yes, the ${activePreviousPlan.analysis.activityType} day. I still like this route.`,
+          time: "9:43 AM",
+        },
+        {
+          id: `${activePreviousPlan.id}-message-3`,
+          memberId: "priya",
+          text: activePreviousPlan.status === "confirmed"
+            ? `${activePreviousPlan.title} is confirmed—let’s keep the timing as planned.`
+            : `${activePreviousPlan.title} is still saved. We just need everyone to decide.`,
+          time: "9:44 AM",
+        },
+      ]
+    : initialMessages;
 
   return (
     <main className="gc2go-dark min-h-dvh bg-[#080B12] text-[#F8FAFC]">
@@ -344,9 +385,9 @@ export default function HomePage() {
         />
 
         <div className="flex min-w-0 flex-1 flex-col bg-[#080B12]">
-          <GroupHeader members={members} onProfilesClick={() => setProfilesOpen(true)} />
+          <GroupHeader members={crewMembers} onProfilesClick={() => setProfilesOpen(true)} />
 
-        <ChatFeed members={members} messages={initialMessages} currentMemberId="maya">
+        <ChatFeed members={crewMembers} messages={visibleMessages} currentMemberId="maya">
           {uploadedFile ? (
             <article className="ml-auto flex w-full max-w-[92%] justify-end sm:max-w-[72%]">
               <div>
@@ -438,7 +479,7 @@ export default function HomePage() {
               ) : (
                 <TripPlanCard destination={analysis.placeName ?? confirmedPlace} plan={tripPlan} sourceLabel={sourceLabel} />
               )}
-              <VotingPanel members={members} votes={votes} onVote={handleVote} />
+              <VotingPanel members={crewMembers} votes={votes} onVote={handleVote} />
             </div>
           ) : null}
 
@@ -461,7 +502,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <MemberProfiles members={members} open={profilesOpen} onClose={() => setProfilesOpen(false)} />
+      <MemberProfiles
+        members={crewMembers}
+        open={profilesOpen}
+        onClose={() => setProfilesOpen(false)}
+        onAvailabilityChange={handleAvailabilityChange}
+      />
     </main>
   );
 }
