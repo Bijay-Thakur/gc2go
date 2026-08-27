@@ -6,7 +6,11 @@ import type {
 export type {
   AvailabilitySlot,
   GroupMember,
+  GroundedPlace,
+  GroundedRecommendation,
+  FeasibilityResult,
   ItineraryItem,
+  MapsCitation,
   NearbyPlace,
   PlaceEnrichment,
   ReviewTip,
@@ -15,6 +19,7 @@ export type {
   SocialProvider,
   TripPlan,
   VideoAnalysis,
+  VideoEvidence,
 } from "@/lib/schemas";
 
 export type VoteChoice = "yes" | "maybe" | "no";

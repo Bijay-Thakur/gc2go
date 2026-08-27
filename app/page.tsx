@@ -7,20 +7,21 @@ import { ChatFeed } from "@/components/group-chat/chat-feed";
 import { GroupHeader } from "@/components/group-chat/group-header";
 import { GroupSidebar } from "@/components/group-chat/group-sidebar";
 import { SocialLinkComposer } from "@/components/group-chat/social-link-composer";
-import { SocialReelPreview } from "@/components/group-chat/social-reel-preview";
 import { MemberProfiles } from "@/components/profiles/member-profiles";
 import { DestinationCard } from "@/components/trip-plan/destination-card";
 import { TripPlanCard } from "@/components/trip-plan/trip-plan-card";
+import { UntermyerExperienceCard } from "@/components/trip-plan/untermyer-experience-card";
 import { VotingPanel } from "@/components/trip-plan/voting-panel";
 import { demoTripPlan, demoVideoAnalysis } from "@/data/demo-trip";
 import { members as initialMembers } from "@/data/members";
+import { UNTERMYER_REEL_URL } from "@/data/mock-untermyer";
 import { previousPlans } from "@/data/previous-plans";
 import { analysisSteps, initialMessages } from "@/lib/demo-data";
-import { enterPlanningPipeline, getAnalysisSourceLabel } from "@/lib/plan-flow";
-import { socialPreviewSchema, videoAnalysisSchema } from "@/lib/schemas";
-import type { ChatMessage, PreviousPlan, SocialPreview, TripPlan, VoteChoice, VotesByMember } from "@/types";
+import { confirmAnalysisDestination, enterPlanningPipeline, getAnalysisSourceLabel } from "@/lib/plan-flow";
+import { groundedPlaceSchema, tripPlanSchema, videoAnalysisSchema } from "@/lib/schemas";
+import type { ChatMessage, PreviousPlan, TripPlan, VoteChoice, VotesByMember } from "@/types";
 
-type FlowStage = "idle" | "analyzing" | "destination" | "planning" | "planned" | "social-loading" | "social-preview" | "social-analyzing";
+type FlowStage = "idle" | "analyzing" | "destination" | "planning" | "planned" | "social-analyzing";
 
 const VOTES_STORAGE_KEY = "gc2go-weekend-crew-votes";
 
@@ -69,13 +70,12 @@ export default function HomePage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialMessages);
   const [flowStage, setFlowStage] = useState<FlowStage>("idle");
   const [analysisStep, setAnalysisStep] = useState(0);
-  const [confirmedPlace, setConfirmedPlace] = useState(demoVideoAnalysis.placeName);
+  const [confirmedPlace, setConfirmedPlace] = useState(demoVideoAnalysis.placeName ?? "");
   const [analysis, setAnalysis] = useState(demoVideoAnalysis);
-  const [tripPlan, setTripPlan] = useState<TripPlan>(demoTripPlan);
+  const [tripPlan, setTripPlan] = useState<TripPlan | null>(demoTripPlan);
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; previewUrl: string } | null>(null);
   const [socialUrl, setSocialUrl] = useState<string | null>(null);
-  const [socialPreview, setSocialPreview] = useState<SocialPreview | null>(null);
   const [socialError, setSocialError] = useState<string | null>(null);
   const [votes, setVotes] = useState<VotesByMember>({});
   const [votesHydrated, setVotesHydrated] = useState(false);
@@ -123,12 +123,11 @@ export default function HomePage() {
 
     setUploadedFile({ name: file.name, size: file.size, previewUrl });
     setSocialUrl(null);
-    setSocialPreview(null);
     setSocialError(null);
     setAnalysis(demoVideoAnalysis);
     setTripPlan(demoTripPlan);
     setActivePlanId(null);
-    setConfirmedPlace(demoVideoAnalysis.placeName);
+    setConfirmedPlace(demoVideoAnalysis.placeName ?? "");
     setVotes({});
     setChatMessages(initialMessages);
     setAnalysisStep(0);
@@ -145,7 +144,68 @@ export default function HomePage() {
 
   async function handleMakeItHappen() {
     const runId = ++runIdRef.current;
-    const planningResult = enterPlanningPipeline(analysis, confirmedPlace, tripPlan);
+    const confirmedAnalysis = confirmAnalysisDestination(analysis, confirmedPlace);
+    const useLivePlanning = Boolean(confirmedAnalysis.provider);
+
+    if (useLivePlanning) {
+      setAnalysis(confirmedAnalysis);
+      setAnalysisStep(2);
+      setFlowStage("planning");
+      setSocialError(null);
+
+      try {
+        await wait(300);
+        if (runIdRef.current !== runId) return;
+        setAnalysisStep(3);
+
+        const mapsResponse = await fetch("/api/enrich-place", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            placeName: confirmedAnalysis.placeName,
+            city: confirmedAnalysis.city,
+            region: confirmedAnalysis.region,
+            country: confirmedAnalysis.country,
+          }),
+        });
+        const mapsPayload: unknown = await mapsResponse.json();
+        if (!mapsResponse.ok) {
+          const message = typeof mapsPayload === "object" && mapsPayload && "error" in mapsPayload
+            ? String(mapsPayload.error)
+            : "Google Maps could not verify this destination.";
+          throw new Error(message);
+        }
+        const groundedPlace = groundedPlaceSchema.parse(mapsPayload);
+
+        if (runIdRef.current !== runId) return;
+        setAnalysisStep(4);
+        const planResponse = await fetch("/api/generate-trip-plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ analysis: confirmedAnalysis, place: groundedPlace }),
+        });
+        const planPayload: unknown = await planResponse.json();
+        if (!planResponse.ok) {
+          const message = typeof planPayload === "object" && planPayload && "error" in planPayload
+            ? String(planPayload.error)
+            : "The grounded trip plan could not be built.";
+          throw new Error(message);
+        }
+        if (!planPayload || typeof planPayload !== "object" || !("plan" in planPayload)) {
+          throw new Error("The planning response was incomplete.");
+        }
+        setTripPlan(tripPlanSchema.parse(planPayload.plan));
+        setFlowStage("planned");
+      } catch (error) {
+        if (runIdRef.current !== runId) return;
+        setSocialError(error instanceof Error ? error.message : "Real trip planning failed.");
+        setFlowStage("destination");
+      }
+      return;
+    }
+
+    if (!tripPlan) return;
+    const planningResult = enterPlanningPipeline(confirmedAnalysis, confirmedPlace, tripPlan);
 
     setAnalysis(planningResult.analysis);
     setTripPlan(planningResult.plan);
@@ -169,11 +229,10 @@ export default function HomePage() {
     runIdRef.current += 1;
     setUploadedFile(null);
     setSocialUrl(null);
-    setSocialPreview(null);
     setSocialError(null);
     setActivePlanId(plan.id);
     setAnalysis(plan.analysis);
-    setConfirmedPlace(plan.analysis.placeName);
+    setConfirmedPlace(plan.analysis.placeName ?? "");
     setTripPlan(plan.plan);
     setVotes(plan.votes ?? {});
     setChatMessages(plan.messages);
@@ -184,11 +243,10 @@ export default function HomePage() {
     runIdRef.current += 1;
     setUploadedFile(null);
     setSocialUrl(null);
-    setSocialPreview(null);
     setSocialError(null);
     setActivePlanId(null);
     setAnalysis(demoVideoAnalysis);
-    setConfirmedPlace(demoVideoAnalysis.placeName);
+    setConfirmedPlace(demoVideoAnalysis.placeName ?? "");
     setTripPlan(demoTripPlan);
     setVotes({});
     setChatMessages(initialMessages);
@@ -200,73 +258,77 @@ export default function HomePage() {
     setUploadedFile(null);
     setActivePlanId(null);
     setSocialUrl(url);
-    setSocialPreview(null);
     setSocialError(null);
-    setTripPlan(demoTripPlan);
+    setTripPlan(null);
     setVotes({});
     setChatMessages(initialMessages);
-    setFlowStage("social-loading");
-
-    try {
-      const response = await fetch("/api/social-preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-      const payload: unknown = await response.json();
-      if (runIdRef.current !== runId) return;
-
-      const preview = socialPreviewSchema.safeParse(payload);
-      if (preview.success) {
-        setSocialPreview(preview.data);
-        setFlowStage("social-preview");
-        return;
-      }
-
-      const errorMessage = typeof payload === "object" && payload && "error" in payload
-        ? String(payload.error)
-        : "The provider could not create a public preview.";
-      throw new Error(errorMessage);
-    } catch (error) {
-      if (runIdRef.current !== runId) return;
-      setSocialError(error instanceof Error ? error.message : "The reel preview is unavailable.");
-      setFlowStage("idle");
-    }
-  }
-
-  async function handleAnalyzeSocialLink() {
-    if (!socialPreview) return;
-    const runId = ++runIdRef.current;
-    setSocialError(null);
     setFlowStage("social-analyzing");
 
     try {
-      const response = await fetch("/api/analyze-social-link", {
+      await wait(900);
+      if (runIdRef.current !== runId) return;
+
+      const analysisResponse = await fetch("/api/analyze-social-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          url: socialPreview.canonicalUrl,
-          provider: socialPreview.provider,
+          url: UNTERMYER_REEL_URL,
+          provider: "instagram",
         }),
       });
-      const payload: unknown = await response.json();
+      const analysisPayload: unknown = await analysisResponse.json();
       if (runIdRef.current !== runId) return;
-      if (!response.ok) {
-        const message = typeof payload === "object" && payload && "error" in payload
-          ? String(payload.error)
-          : "Public reel analysis is unavailable.";
+      if (!analysisResponse.ok) {
+        const message = typeof analysisPayload === "object" && analysisPayload && "error" in analysisPayload
+          ? String(analysisPayload.error)
+          : "Could not identify the destination.";
         throw new Error(message);
       }
 
-      const nextAnalysis = videoAnalysisSchema.parse(payload);
+      const nextAnalysis = videoAnalysisSchema.parse(analysisPayload);
       setAnalysis(nextAnalysis);
-      setConfirmedPlace(nextAnalysis.placeName === "Unknown destination" ? "" : nextAnalysis.placeName);
-      setTripPlan(demoTripPlan);
-      setFlowStage("destination");
+      setConfirmedPlace(nextAnalysis.placeName ?? "");
+
+      const placeResponse = await fetch("/api/enrich-place", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          placeName: nextAnalysis.placeName,
+          city: nextAnalysis.city,
+          region: nextAnalysis.region,
+          country: nextAnalysis.country,
+        }),
+      });
+      const placePayload: unknown = await placeResponse.json();
+      if (runIdRef.current !== runId) return;
+      if (!placeResponse.ok) {
+        const message = typeof placePayload === "object" && placePayload && "error" in placePayload
+          ? String(placePayload.error)
+          : "Could not prepare destination details.";
+        throw new Error(message);
+      }
+      const place = groundedPlaceSchema.parse(placePayload);
+
+      const planResponse = await fetch("/api/generate-trip-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ analysis: nextAnalysis, place }),
+      });
+      const planPayload: unknown = await planResponse.json();
+      if (runIdRef.current !== runId) return;
+      if (!planResponse.ok || !planPayload || typeof planPayload !== "object" || !("plan" in planPayload)) {
+        const message = typeof planPayload === "object" && planPayload && "error" in planPayload
+          ? String(planPayload.error)
+          : "Could not build the group plan.";
+        throw new Error(message);
+      }
+
+      setTripPlan(tripPlanSchema.parse(planPayload.plan));
+      setFlowStage("planned");
     } catch (error) {
       if (runIdRef.current !== runId) return;
-      setSocialError(error instanceof Error ? error.message : "Public reel analysis is unavailable.");
-      setFlowStage("social-preview");
+      setSocialError(error instanceof Error ? error.message : "The simulated plan could not be built.");
+      setFlowStage("idle");
     }
   }
 
@@ -337,31 +399,27 @@ export default function HomePage() {
             </article>
           ) : null}
 
-          {flowStage === "social-loading" ? (
-            <div className="assistant-entry flex items-center gap-3 rounded-2xl border border-[#1F2937] bg-[#0F172A] p-4 text-sm font-bold text-[#E2E8F0]" role="status">
-              <LoaderCircle className="size-5 animate-spin text-[#2DD4BF]" aria-hidden="true" />
-              Loading public reel preview…
-            </div>
-          ) : null}
-
           {socialError ? (
             <div role="alert" className="assistant-entry rounded-2xl border border-[#FB7185]/25 bg-[#FB7185]/8 p-4 text-sm font-semibold text-[#FDA4AF]">
-              {socialError} You can still open the reel directly or upload a screen recording.
+              {socialError}
             </div>
-          ) : null}
-
-          {flowStage === "social-preview" && socialPreview ? (
-            <SocialReelPreview preview={socialPreview} onAnalyze={handleAnalyzeSocialLink} />
           ) : null}
 
           {flowStage === "social-analyzing" ? (
-            <div className="assistant-entry rounded-2xl border border-[#1F2937] bg-[#0F172A] p-4" role="status" aria-live="polite">
-              <div className="flex items-center gap-3">
-                <LoaderCircle className="size-5 animate-spin text-[#2DD4BF]" aria-hidden="true" />
+            <div className="assistant-entry overflow-hidden rounded-[22px] border border-[#2DD4BF]/20 bg-[#0F172A] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.22)]" role="status" aria-live="polite">
+              <div className="flex items-center gap-4">
+                <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[#2DD4BF]/10">
+                  <LoaderCircle className="size-5 animate-spin text-[#2DD4BF]" aria-hidden="true" />
+                </span>
                 <div>
-                  <p className="text-sm font-black text-[#F8FAFC]">Analyzing public reel information…</p>
-                  <p className="mt-0.5 text-xs text-[#94A3B8]">Checking metadata, URL Context, and an approved thumbnail when available.</p>
+                  <p className="text-sm font-black text-[#F8FAFC]">Let&apos;s check if we can make it…</p>
+                  <p className="mt-0.5 text-xs text-[#94A3B8]">
+                    Checking the destination, everyone&apos;s availability, routes, nearby stops, and budget.
+                  </p>
                 </div>
+              </div>
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#1E293B]">
+                <div className="h-full w-2/3 animate-pulse rounded-full bg-gradient-to-r from-[#2DD4BF] to-[#5EEAD4]" />
               </div>
             </div>
           ) : null}
@@ -379,9 +437,13 @@ export default function HomePage() {
             />
           ) : null}
 
-          {flowStage === "planned" ? (
+          {flowStage === "planned" && tripPlan ? (
             <div className="space-y-4">
-              <TripPlanCard destination={analysis.placeName} plan={tripPlan} sourceLabel={sourceLabel} />
+              {analysis.placeName === "Untermyer Park and Gardens" ? (
+                <UntermyerExperienceCard />
+              ) : (
+                <TripPlanCard destination={analysis.placeName ?? confirmedPlace} plan={tripPlan} sourceLabel={sourceLabel} />
+              )}
               <VotingPanel members={members} votes={votes} onVote={handleVote} />
             </div>
           ) : null}
@@ -398,7 +460,7 @@ export default function HomePage() {
 
           <SocialLinkComposer
             disabled={isBusy}
-            loading={flowStage === "social-loading"}
+            loading={flowStage === "social-analyzing"}
             onFileSelected={handleVideoSelected}
             onUrlSubmit={handleSocialLinkSubmit}
           />

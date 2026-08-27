@@ -11,7 +11,8 @@ interface SocialReelPreviewProps {
 
 export function SocialReelPreview({ preview, onAnalyze }: SocialReelPreviewProps) {
   const isTikTok = preview.provider === "tiktok";
-  const providerName = isTikTok ? "TikTok" : "Instagram";
+  const isYouTube = preview.provider === "youtube";
+  const providerName = isYouTube ? "YouTube Shorts" : isTikTok ? "TikTok" : "Instagram";
   const unavailable = preview.status !== "available" || !preview.embedUrl;
 
   return (
@@ -20,17 +21,17 @@ export function SocialReelPreview({ preview, onAnalyze }: SocialReelPreviewProps
         <span className="grid size-7 place-items-center rounded-lg bg-[#2DD4BF]/10">
           <Sparkles className="size-3.5" aria-hidden="true" />
         </span>
-        GC2Go public reel preview
+        GC2Go public video preview
       </div>
 
       <div className="overflow-hidden rounded-[24px] border border-[#1F2937] bg-[#0F172A] shadow-[0_18px_52px_rgba(0,0,0,0.24)]">
         <div className="flex items-center justify-between gap-3 border-b border-[#1F2937] px-4 py-3.5">
           <div className="flex min-w-0 items-center gap-3">
             <span className={`grid size-9 shrink-0 place-items-center rounded-xl ${isTikTok ? "bg-[#F8FAFC] text-[#080B12]" : "bg-[#FB7185]/12 text-[#FB7185]"}`}>
-              {isTikTok ? <Play className="size-4 fill-current" aria-hidden="true" /> : <Camera className="size-4" aria-hidden="true" />}
+              {isYouTube || isTikTok ? <Play className="size-4 fill-current" aria-hidden="true" /> : <Camera className="size-4" aria-hidden="true" />}
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-black text-[#F8FAFC]">{preview.title || `${providerName} reel`}</p>
+              <p className="text-sm font-black text-[#F8FAFC]">{preview.title || `${providerName} video`}</p>
               <p className="truncate text-xs text-[#94A3B8]">
                 {preview.authorName ? `@${preview.authorName.replace(/^@/, "")}` : "Public post information"}
               </p>
@@ -57,7 +58,7 @@ export function SocialReelPreview({ preview, onAnalyze }: SocialReelPreviewProps
           <div className="mx-auto w-full max-w-[390px] bg-[#080B12] p-3 sm:p-4">
             <iframe
               src={preview.embedUrl ?? undefined}
-              title={`${providerName} reel preview`}
+              title={`${providerName} video preview`}
               className="aspect-[9/14] w-full rounded-xl border border-[#1F2937] bg-[#080B12]"
               loading="lazy"
               sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
@@ -69,7 +70,7 @@ export function SocialReelPreview({ preview, onAnalyze }: SocialReelPreviewProps
 
         <div className="flex flex-col gap-3 border-t border-[#1F2937] bg-[#111827] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs leading-5 text-[#94A3B8]">
-            Public embed only. GC2Go has not downloaded or analyzed the video.
+            Public video. Gemini will inspect visual frames, spoken clues, and on-screen text.
           </p>
           <div className="flex shrink-0 gap-2">
             <a
@@ -78,7 +79,7 @@ export function SocialReelPreview({ preview, onAnalyze }: SocialReelPreviewProps
               rel="noreferrer"
               className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-[#334155] px-3 text-xs font-extrabold text-[#E2E8F0] transition hover:border-[#64748B] hover:bg-[#1F2937] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2DD4BF]"
             >
-              Open reel <ExternalLink className="size-3.5" aria-hidden="true" />
+              Open video <ExternalLink className="size-3.5" aria-hidden="true" />
             </a>
             {onAnalyze ? (
               <button
@@ -86,7 +87,7 @@ export function SocialReelPreview({ preview, onAnalyze }: SocialReelPreviewProps
                 onClick={onAnalyze}
                 className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-[#2DD4BF] px-3 text-xs font-black text-[#080B12] transition hover:bg-[#5EEAD4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2DD4BF]"
               >
-                Analyze public info <Sparkles className="size-3.5" aria-hidden="true" />
+                Analyze video <Sparkles className="size-3.5" aria-hidden="true" />
               </button>
             ) : null}
           </div>

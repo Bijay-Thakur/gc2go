@@ -4,7 +4,6 @@ import { useState, type FormEvent } from "react";
 import { LoaderCircle, Send } from "lucide-react";
 
 import { VideoUpload } from "@/components/group-chat/video-upload";
-import { inspectSocialUrl } from "@/lib/social-links";
 
 interface SocialLinkComposerProps {
   disabled?: boolean;
@@ -25,14 +24,14 @@ export function SocialLinkComposer({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedUrl = url.trim();
-    const validation = inspectSocialUrl(trimmedUrl);
-    if (!validation.valid) {
-      setError(validation.error);
+    if (!trimmedUrl) {
+      setError("Paste a link to start the plan.");
       return;
     }
 
     setError(null);
     onUrlSubmit(trimmedUrl);
+    setUrl("");
   }
 
   return (
@@ -42,10 +41,10 @@ export function SocialLinkComposer({
         className="mx-auto flex w-full max-w-3xl items-center gap-1.5 rounded-2xl border border-[#334155] bg-[#111827] p-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.24)] focus-within:border-[#2DD4BF]/70 focus-within:ring-3 focus-within:ring-[#2DD4BF]/10"
       >
         <VideoUpload variant="attachment" disabled={disabled || loading} onFileSelected={onFileSelected} />
-        <label htmlFor="social-reel-url" className="sr-only">TikTok or Instagram Reel URL</label>
+        <label htmlFor="social-reel-url" className="sr-only">Social post URL</label>
         <input
           id="social-reel-url"
-          type="url"
+          type="text"
           inputMode="url"
           autoComplete="url"
           value={url}
@@ -54,7 +53,7 @@ export function SocialLinkComposer({
             setUrl(event.target.value);
             if (error) setError(null);
           }}
-          placeholder="Paste a TikTok or Instagram Reel link…"
+          placeholder="Paste the Untermyer Gardens link"
           aria-invalid={Boolean(error)}
           aria-describedby={error ? "social-link-error" : undefined}
           className="h-11 min-w-0 flex-1 bg-transparent px-2 text-sm font-medium text-[#F8FAFC] outline-none placeholder:text-[#64748B] disabled:cursor-not-allowed"
@@ -62,7 +61,7 @@ export function SocialLinkComposer({
         <button
           type="submit"
           disabled={disabled || loading || !url.trim()}
-          aria-label={loading ? "Loading reel preview" : "Send and analyze reel link"}
+          aria-label={loading ? "Checking if the trip works" : "Send link"}
           className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#2DD4BF] text-[#080B12] transition hover:bg-[#5EEAD4] disabled:cursor-not-allowed disabled:bg-[#1F2937] disabled:text-[#64748B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2DD4BF]"
         >
           {loading ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <Send className="size-4.5" aria-hidden="true" />}
@@ -74,7 +73,7 @@ export function SocialLinkComposer({
         </p>
       ) : (
         <p className="mx-auto mt-2 max-w-3xl px-2 text-[10px] font-medium text-[#64748B]">
-          Public TikTok or Instagram links · or attach a video up to 25 MB
+          Demo mode: any pasted link simulates the Untermyer Gardens group-planning flow.
         </p>
       )}
     </div>

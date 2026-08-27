@@ -5,7 +5,7 @@ export const members = groupMemberSchema.array().parse([
     id: "maya",
     name: "Maya",
     avatarInitials: "MA",
-    startingLocation: "University City, Philadelphia",
+    startingLocation: "Upper West Side, Manhattan",
     availability: [
       { day: "Saturday", start: "09:00", end: "20:00" },
       { day: "Sunday", start: "10:00", end: "17:00" },
@@ -21,7 +21,7 @@ export const members = groupMemberSchema.array().parse([
     id: "theo",
     name: "Theo",
     avatarInitials: "TH",
-    startingLocation: "Fishtown, Philadelphia",
+    startingLocation: "Astoria, Queens",
     availability: [
       { day: "Saturday", start: "10:00", end: "18:00" },
       { day: "Sunday", start: "12:00", end: "19:00" },
@@ -37,7 +37,7 @@ export const members = groupMemberSchema.array().parse([
     id: "jordan",
     name: "Jordan",
     avatarInitials: "JO",
-    startingLocation: "Manayunk, Philadelphia",
+    startingLocation: "Williamsburg, Brooklyn",
     availability: [
       { day: "Saturday", start: "09:30", end: "19:00" },
       { day: "Sunday", start: "09:00", end: "15:00" },
@@ -53,7 +53,7 @@ export const members = groupMemberSchema.array().parse([
     id: "priya",
     name: "Priya",
     avatarInitials: "PR",
-    startingLocation: "Center City, Philadelphia",
+    startingLocation: "Lower East Side, Manhattan",
     availability: [
       { day: "Saturday", start: "10:00", end: "18:30" },
       { day: "Sunday", start: "11:00", end: "16:00" },

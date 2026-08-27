@@ -1,6 +1,5 @@
-import { DEFAULT_DEMO_SOCIAL_URL, demoSocialAnalysis } from "@/data/demo-social";
-import { analyzeSocialLink } from "@/lib/social-analysis";
 import { socialLinkInputSchema } from "@/lib/schemas";
+import { analyzeSocialVideo } from "@/lib/social-video-analysis";
 import { detectSocialProvider, inspectSocialUrl, normalizeSocialUrl } from "@/lib/social-links";
 
 export const runtime = "nodejs";
@@ -27,30 +26,11 @@ export async function POST(request: Request) {
     return Response.json({ error: validation.error ?? "The URL does not match the selected provider." }, { status: 400 });
   }
 
-  const canonicalInput = {
-    ...input.data,
-    url: normalizeSocialUrl(input.data.url),
-  };
-  let configuredDemoUrl = DEFAULT_DEMO_SOCIAL_URL;
+  const canonicalInput = { ...input.data, url: normalizeSocialUrl(input.data.url) };
   try {
-    configuredDemoUrl = normalizeSocialUrl(process.env.DEMO_SOCIAL_URL || DEFAULT_DEMO_SOCIAL_URL);
-  } catch {
-    // Keep the code-owned fixture URL when an optional environment override is invalid.
-  }
-  const isDemoRequest = canonicalInput.url === configuredDemoUrl;
-
-  try {
-    if (process.env.DEMO_MODE === "true" && isDemoRequest) {
-      return Response.json(demoSocialAnalysis);
-    }
-
-    const analysis = await analyzeSocialLink(canonicalInput);
-    if (isDemoRequest && analysis.placeName === "Unknown destination") {
-      return Response.json(demoSocialAnalysis);
-    }
-    return Response.json(analysis);
-  } catch {
-    if (isDemoRequest) return Response.json(demoSocialAnalysis);
-    return Response.json({ error: "Public reel analysis is temporarily unavailable." }, { status: 503 });
+    return Response.json(await analyzeSocialVideo(canonicalInput));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Video analysis is temporarily unavailable.";
+    return Response.json({ error: message }, { status: message.includes("not configured") ? 503 : 422 });
   }
 }

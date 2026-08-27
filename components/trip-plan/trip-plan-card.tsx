@@ -74,7 +74,7 @@ export function TripPlanCard({ destination, plan, sourceLabel }: TripPlanCardPro
               </div>
               <div className="rounded-2xl bg-white/8 p-3.5 ring-1 ring-white/10">
                 <WalletCards className="mb-2 size-4 text-[#79d7c6]" aria-hidden="true" />
-                <p className="text-[10px] font-bold uppercase tracking-wide text-white/55">Per person</p>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-white/55">Estimated per person</p>
                 <p className="mt-0.5 text-sm font-black">${plan.estimatedPerPersonMinimum}–${plan.estimatedPerPersonMaximum}</p>
                 <p className="text-xs text-white/70">Admission, food + gas</p>
               </div>
@@ -127,6 +127,11 @@ export function TripPlanCard({ destination, plan, sourceLabel }: TripPlanCardPro
                       <h4 className="text-xs font-black text-[#17233c]">{place.name}</h4>
                     </div>
                     <p className="text-xs leading-5 text-[#707784]">{place.note}</p>
+                    {place.mapsUrl ? (
+                      <a href={place.mapsUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-[11px] font-extrabold text-[#0f766e] underline underline-offset-2">
+                        Google Maps <ExternalLink className="size-3" aria-hidden="true" />
+                      </a>
+                    ) : null}
                   </div>
                 ))}
               </div>
